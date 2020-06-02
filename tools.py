@@ -4,6 +4,7 @@ import math
 import json
 import ndjson
 from collections import defaultdict
+import sys
 
 stations = dict()
 
@@ -70,9 +71,47 @@ def colour_gradient_from_distance(distance_array):
 	print("test")
 	for i in range(length):
 		relative_colouring = (int((distance_array[i] - min) * 255 / rangemm))#linear colour-scaling
-		relative_colouring = numpy.sqrt(relative_colouring)*16
+		#relative_colouring = int(numpy.sqrt(relative_colouring)*16) #sqrt scaling
+		#relative_colouring = int(relative_colouring**(3/4) * 255/(255**(3/4))) #**3/4 scaling
+		
+		#discrete colour map with relative distances
 		if distance_array[i] != 0:
-			colours[i] = (relative_colouring, 255 - relative_colouring, 0)
+			colour_list = [(163,255,0),(198,255,0),(240,255,0),(250,200,0),(255,154,0),(255,122,0),(255,90,0),(255,70,0),(255,51,0)]
+			std_distance = 1000
+			if distance_array[i] < std_distance*0.5:
+				colours[i] = colour_list[0]
+			elif distance_array[i] < std_distance*1:
+				colours[i] = colour_list[1]
+			elif distance_array[i] < std_distance*1.5:
+				colours[i] = colour_list[2]
+			elif distance_array[i] < std_distance*2:
+				colours[i] = colour_list[3]
+			elif distance_array[i] < std_distance*2.5:
+				colours[i] = colour_list[4]
+			elif distance_array[i] < std_distance*3:
+				colours[i] = colour_list[5]
+			elif distance_array[i] < std_distance*3.5:
+				colours[i] = colour_list[6]
+			elif distance_array[i] < std_distance*4:
+				colours[i] = colour_list[7]
+			else:
+				colours[i] = colour_list[8]
+			"""
+			#discrete colour map with relative distances
+			colour_list = [(163,255,0),(240,255,0),(255,154,0),(255,90,0), (255,51,0)]
+			colours[i] = colour_list[int((relative_colouring / 255)*(len(colour_list)-1))]
+			"""
+			"""
+			#continous three colour map
+			if relative_colouring < 128:
+				colours[i] = (relative_colouring,
+				255 - (relative_colouring*2),
+				0)
+			else:
+				colours[i] = (relative_colouring,
+				0,
+				(relative_colouring-128)*2)
+			#print(colours[i])"""
 		else:
 			colours[i] = (0, 0, 255)
 	return colours
@@ -226,7 +265,7 @@ def draw_distance_map(positions_gps, distances, display_width, display_height, p
 			if event.type == pygame.QUIT:
 				running = False
 
-def getVBBdata():
+def getVBBdata(centre):
 	global stations
 	g = Graph()
 	with open('nodes.ndjson') as f:
@@ -256,10 +295,10 @@ def getVBBdata():
 		distance = int(i['metadata']['time'])
 		g.add_edge(stationA, stationB, distance)
 
-	return dijsktra(g, '900000245024') #Nummer der Dabendorf Node
+	return dijsktra(g, centre) #Nummer der Dabendorf Node900000245024
 
 def main():
-	graphVBB = getVBBdata()
+	graphVBB = getVBBdata(sys.argv[1])
 	stations_with_distances = graphVBB[0]
 	
 	positions = []
@@ -271,12 +310,15 @@ def main():
 	minY = 52.227264
 	for i in stations_with_distances:
 		if stations[i][0] >= minX and stations[i][0] <= maxX and stations[i][1] >= minY and stations[i][1] <= maxY:
+			#if i == '900000193506':
+			#	distances.append(0)
+			#else:
 			distances.append(stations_with_distances[i])
 			positions.append(stations[i])
 
 	width = 2400
 	height = 1400
-	point_size = 5
+	point_size = 4
 	draw_distance_map(positions, distances, width, height, point_size)
 	testarray = [(1,1),(2,2),(3,3)]
 	#draw_euclidean_distance_map(testarray, (0, 0), width, height)
@@ -296,6 +338,13 @@ def main():
 	"""
 
 if __name__ == "__main__":
-	main()
+	try:
+		main()
+	except KeyboardInterrupt:
+		print('\nFamoses Dabendorfprogramm beendet.')
+		try:
+			sys.exit(0)
+		except SystemExit:
+			os._exit(0)
 
 

@@ -4,9 +4,18 @@ import math
 import json
 import ndjson
 from collections import defaultdict
-import sys
+import sys, os
+import colorsys
+from enum import Enum
 
 stations = dict()
+stationTypes = dict()
+
+#StationType = Enum('REGIO', 'METRO', 'BUS')
+#class StationType(Enum):
+#	REGIO = 1
+#	METRO = 2
+#	BUS = 3
 
 class Graph:
 	def __init__(self):
@@ -54,6 +63,10 @@ def dijsktra(graph, initial):
 	return visited, path
 
 
+def hsv2rgb(h,s,v):
+    return tuple(round(i * 255) for i in colorsys.hsv_to_rgb(h,s,v))
+
+
 def colour_gradient_from_distance(distance_array):
 	"""This function calculates the color gradient of an array of distances
 	Parameter:
@@ -68,34 +81,35 @@ def colour_gradient_from_distance(distance_array):
 	rangemm = max - min
 	length = len(distance_array)
 	colours = [None] * length
-	print("test")
+	print("Dabendorf dankt")
 	for i in range(length):
-		relative_colouring = (int((distance_array[i] - min) * 255 / rangemm))#linear colour-scaling
+		#relative_colouring = (int((distance_array[i] - min) * 255 / rangemm))#linear colour-scaling
 		#relative_colouring = int(numpy.sqrt(relative_colouring)*16) #sqrt scaling
 		#relative_colouring = int(relative_colouring**(3/4) * 255/(255**(3/4))) #**3/4 scaling
 		
 		#discrete colour map with relative distances
 		if distance_array[i] != 0:
-			colour_list = [(163,255,0),(198,255,0),(240,255,0),(250,200,0),(255,154,0),(255,122,0),(255,90,0),(255,70,0),(255,51,0)]
-			std_distance = 1000
-			if distance_array[i] < std_distance*0.5:
-				colours[i] = colour_list[0]
-			elif distance_array[i] < std_distance*1:
-				colours[i] = colour_list[1]
-			elif distance_array[i] < std_distance*1.5:
-				colours[i] = colour_list[2]
-			elif distance_array[i] < std_distance*2:
-				colours[i] = colour_list[3]
-			elif distance_array[i] < std_distance*2.5:
-				colours[i] = colour_list[4]
-			elif distance_array[i] < std_distance*3:
-				colours[i] = colour_list[5]
-			elif distance_array[i] < std_distance*3.5:
-				colours[i] = colour_list[6]
-			elif distance_array[i] < std_distance*4:
-				colours[i] = colour_list[7]
-			else:
-				colours[i] = colour_list[8]
+			colours[i] = hsv2rgb((((distance_array[i] - min)/rangemm)+(((102.8/360)*255)/255))%1,1.0,1.0)
+			# colour_list = [(163,255,0),(198,255,0),(240,255,0),(250,200,0),(255,154,0),(255,122,0),(255,90,0),(255,70,0),(255,51,0)]
+			# std_distance = 1250
+			# if distance_array[i] < std_distance*0.5:
+			# 	colours[i] = colour_list[0]
+			# elif distance_array[i] < std_distance*1:
+			# 	colours[i] = colour_list[1]
+			# elif distance_array[i] < std_distance*1.5:
+			# 	colours[i] = colour_list[2]
+			# elif distance_array[i] < std_distance*2:
+			# 	colours[i] = colour_list[3]
+			# elif distance_array[i] < std_distance*2.5:
+			# 	colours[i] = colour_list[4]
+			# elif distance_array[i] < std_distance*3:
+			# 	colours[i] = colour_list[5]
+			# elif distance_array[i] < std_distance*3.5:
+			# 	colours[i] = colour_list[6]
+			# elif distance_array[i] < std_distance*4:
+			# 	colours[i] = colour_list[7]
+			# else:
+			# 	colours[i] = colour_list[8]
 			"""
 			#discrete colour map with relative distances
 			colour_list = [(163,255,0),(240,255,0),(255,154,0),(255,90,0), (255,51,0)]
@@ -113,7 +127,7 @@ def colour_gradient_from_distance(distance_array):
 				(relative_colouring-128)*2)
 			#print(colours[i])"""
 		else:
-			colours[i] = (0, 0, 255)
+			colours[i] = (51, 178, 0)#(0, 0, 255)
 	return colours
 
 def colour_gradient_from_positions(positions, root_position):
@@ -165,7 +179,7 @@ def gps_to_x_y(
 	min_x, min_y = numpy.amin(gps_values, 0)
 	print(str(max_x)+" : "+str(min_x))
 	print(str(max_y)+" : "+ str(min_y))
-	print(draw_border)
+	# print(draw_border)
 	range_x = abs(max_x - min_x)
 	range_y = abs(max_y - min_y)
 	bordered_width = screen_width - 2 * draw_border
@@ -183,7 +197,7 @@ def gps_to_x_y(
 					- int((bordered_height * (gps_values[i][1] - min_y)) / range_y)
 					+ draw_border,
 					)
-		print("Es wurde kein offscreenvalue angegeben.")
+		print("Es wurde keine Offscreen-Value angegeben.")
 		return positions
 	else:
 		positions = [None] * len(gps_values)
@@ -198,7 +212,7 @@ def gps_to_x_y(
 				+ draw_border,
 			)
 
-		print("Es wurde ein offscreenvalue angegeben.")
+		print("Es wurde keine Offscreen-Value angegeben.")
 		return (
 			positions,
 			(
@@ -238,7 +252,7 @@ def draw_euclidean_distance_map(positions_gps, root_gps, display_width, display_
 				running = False
 
 
-def draw_distance_map(positions_gps, distances, display_width, display_height, point_size=1):
+def draw_distance_map(positions_gps, distances, stationTypesArr, display_width, display_height, point_size=1):
 	"""This function draws a distance map using pygame
 		Parameter:
 			positions_gps - an array of tuples giving positions as gps_data
@@ -256,7 +270,12 @@ def draw_distance_map(positions_gps, distances, display_width, display_height, p
 	pygame.display.set_caption('Berlin aus Sicht der Metropole')
 	running = True
 	for i in range(len(positions_x_y)):
-		pygame.draw.circle(screen, colours[i], positions_x_y[i], point_size)
+		if stationTypesArr[i] == 1:
+			pygame.draw.circle(screen, colours[i], positions_x_y[i], point_size[0])
+		elif stationTypesArr[i] == 2:
+			pygame.draw.circle(screen, colours[i], positions_x_y[i], point_size[1])
+		else:
+			pygame.draw.circle(screen, colours[i], positions_x_y[i], point_size[2])
 	pygame.display.flip()
 
 	while running:
@@ -267,6 +286,7 @@ def draw_distance_map(positions_gps, distances, display_width, display_height, p
 
 def getVBBdata(centre):
 	global stations
+	global stationTypes
 	g = Graph()
 	with open('nodes.ndjson') as f:
 		dataSta = ndjson.load(f)
@@ -289,20 +309,51 @@ def getVBBdata(centre):
 	# convert to and from objects
 	textDist = ndjson.dumps(dataDist)
 	dataDist = ndjson.loads(textDist)
+
 	for i in dataDist:
 		stationA = str(i['source'])
 		stationB = str(i['target'])
 		distance = int(i['metadata']['time'])
+		line = i['metadata']['line']
+		if line.startswith('RB') or line.startswith('RB'):
+			stationTypes[stationA] = 1
+			stationTypes[stationB] = 1
+		elif line.startswith('U') or line.startswith('S'):
+			if stationA in stationTypes:
+				if stationTypes[stationA] > 1:
+					stationTypes[stationA] = 2
+			else:
+				stationTypes[stationA] = 2
+			if stationB in stationTypes:
+				if stationTypes[stationB] > 1:
+					stationTypes[stationB] = 2
+			else:
+				stationTypes[stationB] = 2
+		else:
+			if stationA in stationTypes:
+				if stationTypes[stationA] > 2:
+					stationTypes[stationA] = 3
+			else:
+				stationTypes[stationA] = 3
+
+			if stationB in stationTypes:
+				if stationTypes[stationB] > 2:
+					stationTypes[stationB] = 3
+			else:
+				stationTypes[stationB] = 3
 		g.add_edge(stationA, stationB, distance)
 
-	return dijsktra(g, centre) #Nummer der Dabendorf Node900000245024
+
+	return dijsktra(g, centre) #Nummer der Dabendorf Node: 900000245024
 
 def main():
+	global stationTypes
 	graphVBB = getVBBdata(sys.argv[1])
 	stations_with_distances = graphVBB[0]
 	
 	positions = []
 	distances = []
+	stationTypesArr = []
 
 	maxX = 13.908894
 	minX = 13.067187
@@ -315,12 +366,15 @@ def main():
 			#else:
 			distances.append(stations_with_distances[i])
 			positions.append(stations[i])
+			stationTypesArr.append(stationTypes[i])
 
 	width = 2400
 	height = 1400
-	point_size = 4
-	draw_distance_map(positions, distances, width, height, point_size)
-	testarray = [(1,1),(2,2),(3,3)]
+	point_size = (6,5,3)
+	draw_distance_map(positions, distances, stationTypesArr, width, height, point_size)
+	
+
+	#testarray = [(1,1),(2,2),(3,3)]
 	#draw_euclidean_distance_map(testarray, (0, 0), width, height)
 	
 	"""

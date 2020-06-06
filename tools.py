@@ -321,7 +321,7 @@ def main():
 	try:
 		input_station = sys.argv[1]
 	except IndexError:
-		input_station = '900000160014'
+		input_station = '900000245024'
 	graphVBB = getVBBdata(input_station)
 	stations_with_distances = graphVBB[0]
 

@@ -1,14 +1,14 @@
-import numpy
-import pygame
-import math
-import json
-import ndjson
-from collections import defaultdict
-import sys
-import os
 import colorsys
+import json
+import math
+import os
+import sys
+from collections import defaultdict
 from enum import Enum
 
+import ndjson
+import numpy
+import pygame
 stations = dict()
 stationTypes = dict()
 

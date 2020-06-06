@@ -81,7 +81,7 @@ def colour_gradient_from_distance(distance_array):
 	for i in range(length):
 		if distance_array[i] != 0:
 			start = 0 #102.8 Start colour in Dabendorf, degrees from red
-			spectreSize = 0.8 #number of iterations around rainbow, preferibly < 1.0
+			spectreSize = 1.7 #number of iterations around rainbow, preferibly < 1.0
 			hue = ((((distance_array[i] - min)/rangemm)+(((start/360)*255)/255))%1)*spectreSize
 			colours[i] = hsv2rgb(hue, 1.0, 1.0)
 		else:
@@ -211,7 +211,7 @@ def draw_euclidean_distance_map(positions_gps, root_gps, display_width, display_
 				running = False
 
 
-def draw_distance_map(positions_gps, distances, stationTypesArr, display_width, display_height, point_size=1):
+def draw_distance_map(positions_gps, distances, stationTypesArr, display_width, display_height, point_size=1, save_as='screenshot'):
 	"""This function draws a distance map using pygame
 			Parameter:
 					positions_gps - an array of tuples giving positions as gps_data
@@ -231,14 +231,21 @@ def draw_distance_map(positions_gps, distances, stationTypesArr, display_width, 
 	for i in range(len(positions_x_y)):
 		if stationTypesArr[i] == 1:
 			pygame.draw.circle(
-				screen, colours[i], positions_x_y[i], point_size[0])
+				screen, (255,255,255), positions_x_y[i], point_size[0]+4)
+			pygame.draw.circle(
+				screen, colours[i], positions_x_y[i], point_size[0])			
 		elif stationTypesArr[i] == 2:
+			pygame.draw.circle(
+				screen, (255,255,255), positions_x_y[i], point_size[1]+2)
 			pygame.draw.circle(
 				screen, colours[i], positions_x_y[i], point_size[1])
 		else:
 			pygame.draw.circle(
+				screen, (255,255,255), positions_x_y[i], point_size[2]+1)
+			pygame.draw.circle(
 				screen, colours[i], positions_x_y[i], point_size[2])
 	pygame.display.flip()
+	pygame.image.save(screen, save_as + '.png')
 
 	while running:
 		# disposes of all events and possibly closes the programm
@@ -312,9 +319,10 @@ def getVBBdata(centre):
 def main():
 	global stationTypes
 	try:
-		graphVBB = getVBBdata(sys.argv[1])
+		input_station = sys.argv[1]
 	except IndexError:
-		graphVBB = getVBBdata('900000245024')
+		input_station = '900000160014'
+	graphVBB = getVBBdata(input_station)
 	stations_with_distances = graphVBB[0]
 
 	positions = []
@@ -340,11 +348,11 @@ def main():
 	print(deltaY)
 	print(deltaX/deltaY)
 
-	height = 1350
+	height = 4320
 	width = int(height * (deltaX/deltaY))
-	point_size = (6, 5, 3)
+	point_size = (12, 7, 5)
 	draw_distance_map(positions, distances, stationTypesArr,
-					  width, height, point_size)
+					  width, height, point_size, input_station)
 
 
 if __name__ == "__main__":

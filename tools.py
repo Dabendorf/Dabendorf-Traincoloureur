@@ -314,7 +314,7 @@ def main():
 	try:
 		graphVBB = getVBBdata(sys.argv[1])
 	except IndexError:
-		graphVBB = getVBBdata('900000193506')
+		graphVBB = getVBBdata('900000245024')
 	stations_with_distances = graphVBB[0]
 
 	positions = []

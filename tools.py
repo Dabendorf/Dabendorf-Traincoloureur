@@ -9,8 +9,9 @@ from enum import Enum
 import ndjson
 import numpy
 import pygame
+
 stations = dict()
-stationTypes = dict()
+station_types = dict()
 
 
 class Graph:
@@ -179,7 +180,7 @@ def gps_to_x_y(
 				+ draw_border,
 				bordered_height
 				- int((bordered_height *
-					   (off_screen_value[1] - min_y)) / range_y)
+					(off_screen_value[1] - min_y)) / range_y)
 				+ draw_border,
 			),
 		)
@@ -212,16 +213,16 @@ def draw_euclidean_distance_map(positions_gps, root_gps, display_width, display_
 				running = False
 
 
-def draw_distance_map(positions_gps, distances, stationTypesArr, display_width, display_height, point_size=1):
+def draw_distance_map(positions_gps, distances, station_types_arr, display_width, display_height, point_size=1):
 	"""This function draws a distance map using pygame
-					Parameter:
-									positions_gps - an array of tuples giving positions as gps_data
-									!!!Proably only for positive coordinates!!!
-									distances - an array fo distances according to the distance of the
-									corrosponding position to something in some metric
-									display_width - int
-									display_height - int
-					============================================================================
+			Parameter:
+				positions_gps - an array of tuples giving positions as gps_data
+				!!!Proably only for positive coordinates!!!
+				distances - an array fo distances according to the distance of the
+				corrosponding position to something in some metric
+				display_width - int
+				display_height - int
+	============================================================================
 	"""
 	positions_x_y = gps_to_x_y(positions_gps, display_width, display_height)
 	colours = colour_gradient_from_distance(distances)
@@ -230,10 +231,10 @@ def draw_distance_map(positions_gps, distances, stationTypesArr, display_width, 
 	pygame.display.set_caption('Berlin aus Sicht der Metropole')
 	running = True
 	for i in range(len(positions_x_y)):
-		if stationTypesArr[i] == 1:
+		if station_types_arr[i] == 1:
 			pygame.draw.circle(
 				screen, colours[i], positions_x_y[i], point_size[0])
-		elif stationTypesArr[i] == 2:
+		elif station_types_arr[i] == 2:
 			pygame.draw.circle(
 				screen, colours[i], positions_x_y[i], point_size[1])
 		else:
@@ -248,9 +249,9 @@ def draw_distance_map(positions_gps, distances, stationTypesArr, display_width, 
 				running = False
 
 
-def getVBBdata(centre):
+def get_vbb_data(centre):
 	global stations
-	global stationTypes
+	global station_types
 	g = Graph()
 	with open('nodes.ndjson') as f:
 		dataSta = ndjson.load(f)
@@ -280,71 +281,71 @@ def getVBBdata(centre):
 		distance = int(i['metadata']['time'])
 		line = i['metadata']['line']
 		if line.startswith('RB') or line.startswith('RB'):
-			stationTypes[stationA] = 1
-			stationTypes[stationB] = 1
+			station_types[stationA] = 1
+			station_types[stationB] = 1
 		elif line.startswith('U') or line.startswith('S'):
-			if stationA in stationTypes:
-				if stationTypes[stationA] > 1:
-					stationTypes[stationA] = 2
+			if stationA in station_types:
+				if station_types[stationA] > 1:
+					station_types[stationA] = 2
 			else:
-				stationTypes[stationA] = 2
-			if stationB in stationTypes:
-				if stationTypes[stationB] > 1:
-					stationTypes[stationB] = 2
+				station_types[stationA] = 2
+			if stationB in station_types:
+				if station_types[stationB] > 1:
+					station_types[stationB] = 2
 			else:
-				stationTypes[stationB] = 2
+				station_types[stationB] = 2
 		else:
-			if stationA in stationTypes:
-				if stationTypes[stationA] > 2:
-					stationTypes[stationA] = 3
+			if stationA in station_types:
+				if station_types[stationA] > 2:
+					station_types[stationA] = 3
 			else:
-				stationTypes[stationA] = 3
+				station_types[stationA] = 3
 
-			if stationB in stationTypes:
-				if stationTypes[stationB] > 2:
-					stationTypes[stationB] = 3
+			if stationB in station_types:
+				if station_types[stationB] > 2:
+					station_types[stationB] = 3
 			else:
-				stationTypes[stationB] = 3
+				station_types[stationB] = 3
 		g.add_edge(stationA, stationB, distance)
 
 	return dijsktra(g, centre)  # Nummer der Dabendorf Node: 900000245024
 
 
 def main():
-	global stationTypes
+	global station_types
 	try:
-		graphVBB = getVBBdata(sys.argv[1])
+		graph_vbb = get_vbb_data(sys.argv[1])
 	except IndexError:
-		graphVBB = getVBBdata('900000245024')
-	stations_with_distances = graphVBB[0]
+		graph_vbb = get_vbb_data('900000245024')
+	stations_with_distances = graph_vbb[0]
 
 	positions = []
 	distances = []
-	stationTypesArr = []
+	station_types_arr = []
 
-	maxX = 13.908894
-	minX = 13.067187
-	maxY = 52.754362
-	minY = 52.227264
+	max_x = 13.908894
+	min_x = 13.067187
+	max_y = 52.754362
+	min_y = 52.227264
 	for i in stations_with_distances:
-		if stations[i][0] >= minX and stations[i][0] <= maxX and stations[i][1] >= minY and stations[i][1] <= maxY:
+		if stations[i][0] >= min_x and stations[i][0] <= max_x and stations[i][1] >= min_y and stations[i][1] <= max_y:
 			# if i == '900000193506':
 			#	distances.append(0)
 			# else:
 			distances.append(stations_with_distances[i])
 			positions.append(stations[i])
-			stationTypesArr.append(stationTypes[i])
+			station_types_arr.append(station_types[i])
 
-	deltaX = maxX-minX
-	deltaY = maxY-minY
-	print(deltaX)
-	print(deltaY)
-	print(deltaX/deltaY)
+	delta_x = max_x-min_x
+	delta_y = max_y-min_y
+	print(delta_x)
+	print(delta_y)
+	print(delta_x/delta_y)
 
-	height = 1350
-	width = int(height * (deltaX/deltaY))
+	height = 1000
+	width = int(height * (delta_x/delta_y))
 	point_size = (6, 5, 3)
-	draw_distance_map(positions, distances, stationTypesArr,
+	draw_distance_map(positions, distances, station_types_arr,
 					  width, height, point_size)
 
 

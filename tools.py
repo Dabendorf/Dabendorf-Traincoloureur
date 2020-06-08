@@ -81,10 +81,16 @@ def colour_gradient_from_distance(distance_array):
 	print("Dabendorf dankt")
 	for i in range(length):
 		if distance_array[i] != 0:
+<<<<<<< HEAD
 			start = 0  # 102.8 Start colour in Dabendorf, degrees from red
 			spectreSize = 0.8  # number of iterations around rainbow, preferibly < 1.0
 			hue = ((((distance_array[i] - min)/rangemm) +
 					(((start/360)*255)/255)) % 1)*spectreSize
+=======
+			start = 0 #102.8 Start colour in Dabendorf, degrees from red
+			spectreSize = 1.7 #number of iterations around rainbow, preferibly < 1.0
+			hue = ((((distance_array[i] - min)/rangemm)+(((start/360)*255)/255))%1)*spectreSize
+>>>>>>> 761df185e95683211ccd7af3eb087b395931fdad
 			colours[i] = hsv2rgb(hue, 1.0, 1.0)
 		else:
 			colours[i] = (51, 178, 0)  # DORgreen, 33b200
@@ -213,7 +219,11 @@ def draw_euclidean_distance_map(positions_gps, root_gps, display_width, display_
 				running = False
 
 
+<<<<<<< HEAD
 def draw_distance_map(positions_gps, distances, station_types_arr, display_width, display_height, point_size=1):
+=======
+def draw_distance_map(positions_gps, distances, stationTypesArr, display_width, display_height, point_size=1, save_as='screenshot'):
+>>>>>>> 761df185e95683211ccd7af3eb087b395931fdad
 	"""This function draws a distance map using pygame
 			Parameter:
 				positions_gps - an array of tuples giving positions as gps_data
@@ -233,14 +243,21 @@ def draw_distance_map(positions_gps, distances, station_types_arr, display_width
 	for i in range(len(positions_x_y)):
 		if station_types_arr[i] == 1:
 			pygame.draw.circle(
-				screen, colours[i], positions_x_y[i], point_size[0])
+				screen, (255,255,255), positions_x_y[i], point_size[0]+4)
+			pygame.draw.circle(
+				screen, colours[i], positions_x_y[i], point_size[0])			
 		elif station_types_arr[i] == 2:
+			pygame.draw.circle(
+				screen, (255,255,255), positions_x_y[i], point_size[1]+2)
 			pygame.draw.circle(
 				screen, colours[i], positions_x_y[i], point_size[1])
 		else:
 			pygame.draw.circle(
+				screen, (255,255,255), positions_x_y[i], point_size[2]+1)
+			pygame.draw.circle(
 				screen, colours[i], positions_x_y[i], point_size[2])
 	pygame.display.flip()
+	pygame.image.save(screen, save_as + '.png')
 
 	while running:
 		# disposes of all events and possibly closes the programm
@@ -314,9 +331,10 @@ def get_vbb_data(centre):
 def main():
 	global station_types
 	try:
-		graph_vbb = get_vbb_data(sys.argv[1])
+		input_station = sys.argv[1]
 	except IndexError:
-		graph_vbb = get_vbb_data('900000245024')
+		input_station = '900000245024'
+	graph_vbb = get_vbb_data(input_station)
 	stations_with_distances = graph_vbb[0]
 
 	positions = []

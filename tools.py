@@ -66,10 +66,10 @@ def hsv2rgb(h, s, v):
 def colour_gradient_from_distance(distance_array):
 	"""This function calculates the color gradient of an array of distances
 	Parameter:
-			distance_array - an array of floats
+					distance_array - an array of floats
 	============================================================================
 	Returns:
-			an array of colours with the format (r,g,b) where r,g and b are between 0 and 255
+					an array of colours with the format (r,g,b) where r,g and b are between 0 and 255
 	============================================================================
 	"""
 	max = numpy.amax(distance_array)
@@ -80,9 +80,10 @@ def colour_gradient_from_distance(distance_array):
 	print("Dabendorf dankt")
 	for i in range(length):
 		if distance_array[i] != 0:
-			start = 0 #102.8 Start colour in Dabendorf, degrees from red
-			spectreSize = 0.8 #number of iterations around rainbow, preferibly < 1.0
-			hue = ((((distance_array[i] - min)/rangemm)+(((start/360)*255)/255))%1)*spectreSize
+			start = 0  # 102.8 Start colour in Dabendorf, degrees from red
+			spectreSize = 0.8  # number of iterations around rainbow, preferibly < 1.0
+			hue = ((((distance_array[i] - min)/rangemm) +
+					(((start/360)*255)/255)) % 1)*spectreSize
 			colours[i] = hsv2rgb(hue, 1.0, 1.0)
 		else:
 			colours[i] = (51, 178, 0)  # DORgreen, 33b200
@@ -91,21 +92,21 @@ def colour_gradient_from_distance(distance_array):
 
 def colour_gradient_from_positions(positions, root_position):
 	"""This function calculates the color gradient of an array of positions
-			given a root position from which the distances are to be measured
-			Parameter:
-					positions - an array of tuples giving positions as tuples
-					root_position - a tuple
-			============================================================================
-			Returns:
-					an array of colours with the format (r,g,b) where r,g and b are between 0 and 255
-					going from green to red the farther the corresponding position is away from root
-			============================================================================
+					given a root position from which the distances are to be measured
+					Parameter:
+									positions - an array of tuples giving positions as tuples
+									root_position - a tuple
+					============================================================================
+					Returns:
+									an array of colours with the format (r,g,b) where r,g and b are between 0 and 255
+									going from green to red the farther the corresponding position is away from root
+					============================================================================
 	"""
 	distances = []
 	for position in positions:
 		distances.append(
 			numpy.sqrt(
-						((position[0] - root_position[0]) ** 2)
+				((position[0] - root_position[0]) ** 2)
 				+ (position[1] - root_position[1]) ** 2
 			)
 		)
@@ -113,24 +114,24 @@ def colour_gradient_from_positions(positions, root_position):
 
 
 def gps_to_x_y(
-		gps_values, screen_width, screen_height, off_screen_value=None, draw_border=20
+	gps_values, screen_width, screen_height, off_screen_value=None, draw_border=20
 ):
 	"""This function calculates the relative position of GPS-coordinates on a given screen
 	Parameter:
-			gps_values - an array of tuples (longnitude, latitude)
-			!!!For the moment this is likely to only work for positive GPS-Values!!!
-			screen_width - int
-			screen_height - int
-			off_screen_value - a gps tuple that needs to be comverted but
-			not considered whe defining the dimensions
-			draw_border - int that defines the width of the border that is left empty
-			and not considered for calculations
+					gps_values - an array of tuples (longnitude, latitude)
+					!!!For the moment this is likely to only work for positive GPS-Values!!!
+					screen_width - int
+					screen_height - int
+					off_screen_value - a gps tuple that needs to be comverted but
+					not considered whe defining the dimensions
+					draw_border - int that defines the width of the border that is left empty
+					and not considered for calculations
 	============================================================================
 	Returns:
-			an array of tuples (x,y) of integers assuming that top left is (0,0).
-			the tuples range from (0,0) to (screen_width, screen_height)
+					an array of tuples (x,y) of integers assuming that top left is (0,0).
+					the tuples range from (0,0) to (screen_width, screen_height)
 
-			a tuple that is the converted coordinates of the off_screen_value
+					a tuple that is the converted coordinates of the off_screen_value
 	============================================================================
 	"""
 	max_x, max_y = numpy.amax(gps_values, 0)
@@ -186,13 +187,13 @@ def gps_to_x_y(
 
 def draw_euclidean_distance_map(positions_gps, root_gps, display_width, display_height):
 	"""This function draws a distance map using pygame
-			Parameter:
-					positions_gps - an array of tuples giving positions as gps_data
-					!!!Proably only for positive coordinates!!!
-					root_gps - a tuple of gps data for the root position
-					display_width - int
-					display_height - int
-			============================================================================
+					Parameter:
+									positions_gps - an array of tuples giving positions as gps_data
+									!!!Proably only for positive coordinates!!!
+									root_gps - a tuple of gps data for the root position
+									display_width - int
+									display_height - int
+					============================================================================
 	"""
 	positions_x_y, root_x_y = gps_to_x_y(
 		positions_gps, display_width, display_height, root_gps
@@ -213,14 +214,14 @@ def draw_euclidean_distance_map(positions_gps, root_gps, display_width, display_
 
 def draw_distance_map(positions_gps, distances, stationTypesArr, display_width, display_height, point_size=1):
 	"""This function draws a distance map using pygame
-			Parameter:
-					positions_gps - an array of tuples giving positions as gps_data
-					!!!Proably only for positive coordinates!!!
-					distances - an array fo distances according to the distance of the
-					corrosponding position to something in some metric
-					display_width - int
-					display_height - int
-			============================================================================
+					Parameter:
+									positions_gps - an array of tuples giving positions as gps_data
+									!!!Proably only for positive coordinates!!!
+									distances - an array fo distances according to the distance of the
+									corrosponding position to something in some metric
+									display_width - int
+									display_height - int
+					============================================================================
 	"""
 	positions_x_y = gps_to_x_y(positions_gps, display_width, display_height)
 	colours = colour_gradient_from_distance(distances)

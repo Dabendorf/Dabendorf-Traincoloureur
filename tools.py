@@ -81,16 +81,11 @@ def colour_gradient_from_distance(distance_array):
 	print("Dabendorf dankt")
 	for i in range(length):
 		if distance_array[i] != 0:
-<<<<<<< HEAD
 			start = 0  # 102.8 Start colour in Dabendorf, degrees from red
 			spectreSize = 0.8  # number of iterations around rainbow, preferibly < 1.0
 			hue = ((((distance_array[i] - min)/rangemm) +
 					(((start/360)*255)/255)) % 1)*spectreSize
-=======
-			start = 0 #102.8 Start colour in Dabendorf, degrees from red
-			spectreSize = 1.7 #number of iterations around rainbow, preferibly < 1.0
-			hue = ((((distance_array[i] - min)/rangemm)+(((start/360)*255)/255))%1)*spectreSize
->>>>>>> 761df185e95683211ccd7af3eb087b395931fdad
+
 			colours[i] = hsv2rgb(hue, 1.0, 1.0)
 		else:
 			colours[i] = (51, 178, 0)  # DORgreen, 33b200
@@ -219,11 +214,7 @@ def draw_euclidean_distance_map(positions_gps, root_gps, display_width, display_
 				running = False
 
 
-<<<<<<< HEAD
-def draw_distance_map(positions_gps, distances, station_types_arr, display_width, display_height, point_size=1):
-=======
-def draw_distance_map(positions_gps, distances, stationTypesArr, display_width, display_height, point_size=1, save_as='screenshot'):
->>>>>>> 761df185e95683211ccd7af3eb087b395931fdad
+def draw_distance_map(positions_gps, distances, station_types_arr, display_width, display_height, point_size=1, save_as='screenshot'):
 	"""This function draws a distance map using pygame
 			Parameter:
 				positions_gps - an array of tuples giving positions as gps_data

@@ -4,6 +4,9 @@ import math
 import os
 import sys
 from collections import defaultdict
+import sys
+import os
+import colorsys
 from enum import Enum
 
 import ndjson

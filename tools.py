@@ -81,7 +81,7 @@ def colour_gradient_from_distance(distance_array):
 	for i in range(length):
 		if distance_array[i] != 0:
 			start = 0 #102.8 Start colour in Dabendorf, degrees from red
-			spectreSize = 1.7 #number of iterations around rainbow, preferibly < 1.0
+			spectreSize = 0.8 #number of iterations around rainbow, preferibly < 1.0
 			hue = ((((distance_array[i] - min)/rangemm)+(((start/360)*255)/255))%1)*spectreSize
 			colours[i] = hsv2rgb(hue, 1.0, 1.0)
 		else:
@@ -228,20 +228,21 @@ def draw_distance_map(positions_gps, distances, stationTypesArr, display_width, 
 	screen = pygame.display.set_mode((display_width, display_height))
 	pygame.display.set_caption('Berlin aus Sicht der Metropole')
 	running = True
+	offset = (0, 0 ,0)
 	for i in range(len(positions_x_y)):
 		if stationTypesArr[i] == 1:
 			pygame.draw.circle(
-				screen, (255,255,255), positions_x_y[i], point_size[0]+4)
+				screen, (255,255,255), positions_x_y[i], point_size[0]+offset[0])
 			pygame.draw.circle(
 				screen, colours[i], positions_x_y[i], point_size[0])			
 		elif stationTypesArr[i] == 2:
 			pygame.draw.circle(
-				screen, (255,255,255), positions_x_y[i], point_size[1]+2)
+				screen, (255,255,255), positions_x_y[i], point_size[1]+offset[1])
 			pygame.draw.circle(
 				screen, colours[i], positions_x_y[i], point_size[1])
 		else:
 			pygame.draw.circle(
-				screen, (255,255,255), positions_x_y[i], point_size[2]+1)
+				screen, (255,255,255), positions_x_y[i], point_size[2]+offset[2])
 			pygame.draw.circle(
 				screen, colours[i], positions_x_y[i], point_size[2])
 	pygame.display.flip()
@@ -348,9 +349,9 @@ def main():
 	print(deltaY)
 	print(deltaX/deltaY)
 
-	height = 4320
+	height = 2000
 	width = int(height * (deltaX/deltaY))
-	point_size = (12, 7, 5)
+	point_size = (6, 5, 3)
 	draw_distance_map(positions, distances, stationTypesArr,
 					  width, height, point_size, input_station)
 

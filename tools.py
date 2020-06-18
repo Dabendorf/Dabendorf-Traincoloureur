@@ -234,20 +234,21 @@ def draw_distance_map(positions_gps, distances, station_types_arr, display_width
 	screen = pygame.display.set_mode((display_width, display_height))
 	pygame.display.set_caption('Berlin aus Sicht der Metropole')
 	running = True
+	offset = (0, 0, 0)
 	for i in range(len(positions_x_y)):
 		if station_types_arr[i] == 1:
 			pygame.draw.circle(
-				screen, (255,255,255), positions_x_y[i], point_size[0]+4)
+				screen, (255,255,255), positions_x_y[i], point_size[0]+offset[0])
 			pygame.draw.circle(
 				screen, colours[i], positions_x_y[i], point_size[0])			
 		elif station_types_arr[i] == 2:
 			pygame.draw.circle(
-				screen, (255,255,255), positions_x_y[i], point_size[1]+2)
+				screen, (255,255,255), positions_x_y[i], point_size[1]+offset[0])
 			pygame.draw.circle(
 				screen, colours[i], positions_x_y[i], point_size[1])
 		else:
 			pygame.draw.circle(
-				screen, (255,255,255), positions_x_y[i], point_size[2]+1)
+				screen, (255,255,255), positions_x_y[i], point_size[2]+offset[0])
 			pygame.draw.circle(
 				screen, colours[i], positions_x_y[i], point_size[2])
 	pygame.display.flip()

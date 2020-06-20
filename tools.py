@@ -77,7 +77,7 @@ def colour_gradient_from_distance(distance_array):
 	rangemm = max - min
 	length = len(distance_array)
 	colours = [None] * length
-	print("Dabendorf dankt")
+	#print("Dabendorf dankt")
 	for i in range(length):
 		if distance_array[i] != 0:
 			start = 0 #102.8 Start colour in Dabendorf, degrees from red
@@ -135,8 +135,8 @@ def gps_to_x_y(
 	"""
 	max_x, max_y = numpy.amax(gps_values, 0)
 	min_x, min_y = numpy.amin(gps_values, 0)
-	print(str(max_x)+" : "+str(min_x))
-	print(str(max_y)+" : " + str(min_y))
+	#print(str(max_x)+" : "+str(min_x))
+	#print(str(max_y)+" : " + str(min_y))
 	# print(draw_border)
 	range_x = abs(max_x - min_x)
 	range_y = abs(max_y - min_y)
@@ -155,7 +155,7 @@ def gps_to_x_y(
 				- int((bordered_height * (gps_values[i][1] - min_y)) / range_y)
 				+ draw_border,
 			)
-		print("Es wurde keine Offscreen-Value angegeben.")
+		#print("Es wurde keine Offscreen-Value angegeben.")
 		return positions
 	else:
 		positions = [None] * len(gps_values)
@@ -170,7 +170,7 @@ def gps_to_x_y(
 				+ draw_border,
 			)
 
-		print("Es wurde keine Offscreen-Value angegeben.")
+		#print("Es wurde keine Offscreen-Value angegeben.")
 		return (
 			positions,
 			(
@@ -246,12 +246,17 @@ def draw_distance_map(positions_gps, distances, stationTypesArr, display_width, 
 				screen, colours[i], positions_x_y[i], point_size[2])
 	pygame.display.flip()
 	pygame.image.save(screen, save_as + '.png')
+	
+	print('q drücken um das Programm zu beenden')
 
 	while running:
 		# disposes of all events and possibly closes the programm
 		for event in pygame.event.get():
-			if event.type == pygame.QUIT:
+			keys = pygame.key.get_pressed()
+			if event.type == pygame.QUIT or keys[pygame.K_q] or keys[pygame.K_ESCAPE]:
 				running = False
+				pygame.display.quit()
+				pygame.quit()
 
 
 def getVBBdata(centre):
@@ -344,15 +349,16 @@ def main():
 
 	deltaX = maxX-minX
 	deltaY = maxY-minY
-	print(deltaX)
-	print(deltaY)
-	print(deltaX/deltaY)
+	#print(deltaX)
+	#print(deltaY)
+	#print(deltaX/deltaY)
 
 	height = 4320
 	width = int(height * (deltaX/deltaY))
 	point_size = (12, 7, 5)
 	draw_distance_map(positions, distances, stationTypesArr,
 					  width, height, point_size, input_station)
+	return
 
 
 if __name__ == "__main__":

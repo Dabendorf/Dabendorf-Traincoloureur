@@ -12065,7 +12065,7 @@
 {"id":"900000245413","label":"Paplitz, Str. des Friedens","metadata":{"type":"location","latitude":52.052497,"longitude":13.469079}}
 {"id":"900000245636","label":"Wünsdorf, Adlershorststr.","metadata":{"type":"location","latitude":52.157379,"longitude":13.454397}}
 {"id":"900000245561","label":"Neuhof (bei Zossen), Neuhofer Dorfstr.","metadata":{"type":"location","latitude":52.136685,"longitude":13.472068}}
-{"id":"900000245024","label":"Dabendorf, Bhf","metadata":{"type":"location","latitude":52.237264,"longitude":13.437435}}
+{"id":"900000245024","label":"Dabendorf, HBF","metadata":{"type":"location","latitude":52.237264,"longitude":13.437435}}
 {"id":"900000245644","label":"Schünow, Ausbau","metadata":{"type":"location","latitude":52.226582,"longitude":13.365902}}
 {"id":"900000245565","label":"Radeland, Dorf","metadata":{"type":"location","latitude":52.055347,"longitude":13.551666}}
 {"id":"900000245573","label":"Radeland, Radeländer Weg","metadata":{"type":"location","latitude":52.05523,"longitude":13.568677}}

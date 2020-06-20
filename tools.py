@@ -1,16 +1,20 @@
-import numpy
-import pygame
-import math
+import colorsys
 import json
-import ndjson
+import math
+import os
+import sys
 from collections import defaultdict
 import sys
 import os
 import colorsys
 from enum import Enum
 
+import ndjson
+import numpy
+import pygame
+
 stations = dict()
-stationTypes = dict()
+station_types = dict()
 
 
 class Graph:
@@ -66,10 +70,10 @@ def hsv2rgb(h, s, v):
 def colour_gradient_from_distance(distance_array):
 	"""This function calculates the color gradient of an array of distances
 	Parameter:
-			distance_array - an array of floats
+					distance_array - an array of floats
 	============================================================================
 	Returns:
-			an array of colours with the format (r,g,b) where r,g and b are between 0 and 255
+					an array of colours with the format (r,g,b) where r,g and b are between 0 and 255
 	============================================================================
 	"""
 	max = numpy.amax(distance_array)
@@ -80,9 +84,11 @@ def colour_gradient_from_distance(distance_array):
 	#print("Dabendorf dankt")
 	for i in range(length):
 		if distance_array[i] != 0:
-			start = 0 #102.8 Start colour in Dabendorf, degrees from red
-			spectreSize = 1.7 #number of iterations around rainbow, preferibly < 1.0
-			hue = ((((distance_array[i] - min)/rangemm)+(((start/360)*255)/255))%1)*spectreSize
+			start = 0  # 102.8 Start colour in Dabendorf, degrees from red
+			spectreSize = 0.8  # number of iterations around rainbow, preferibly < 1.0
+			hue = ((((distance_array[i] - min)/rangemm) +
+					(((start/360)*255)/255)) % 1)*spectreSize
+
 			colours[i] = hsv2rgb(hue, 1.0, 1.0)
 		else:
 			colours[i] = (51, 178, 0)  # DORgreen, 33b200
@@ -91,21 +97,21 @@ def colour_gradient_from_distance(distance_array):
 
 def colour_gradient_from_positions(positions, root_position):
 	"""This function calculates the color gradient of an array of positions
-			given a root position from which the distances are to be measured
-			Parameter:
-					positions - an array of tuples giving positions as tuples
-					root_position - a tuple
-			============================================================================
-			Returns:
-					an array of colours with the format (r,g,b) where r,g and b are between 0 and 255
-					going from green to red the farther the corresponding position is away from root
-			============================================================================
+					given a root position from which the distances are to be measured
+					Parameter:
+									positions - an array of tuples giving positions as tuples
+									root_position - a tuple
+					============================================================================
+					Returns:
+									an array of colours with the format (r,g,b) where r,g and b are between 0 and 255
+									going from green to red the farther the corresponding position is away from root
+					============================================================================
 	"""
 	distances = []
 	for position in positions:
 		distances.append(
 			numpy.sqrt(
-						((position[0] - root_position[0]) ** 2)
+				((position[0] - root_position[0]) ** 2)
 				+ (position[1] - root_position[1]) ** 2
 			)
 		)
@@ -113,24 +119,24 @@ def colour_gradient_from_positions(positions, root_position):
 
 
 def gps_to_x_y(
-		gps_values, screen_width, screen_height, off_screen_value=None, draw_border=20
+	gps_values, screen_width, screen_height, off_screen_value=None, draw_border=20
 ):
 	"""This function calculates the relative position of GPS-coordinates on a given screen
 	Parameter:
-			gps_values - an array of tuples (longnitude, latitude)
-			!!!For the moment this is likely to only work for positive GPS-Values!!!
-			screen_width - int
-			screen_height - int
-			off_screen_value - a gps tuple that needs to be comverted but
-			not considered whe defining the dimensions
-			draw_border - int that defines the width of the border that is left empty
-			and not considered for calculations
+					gps_values - an array of tuples (longnitude, latitude)
+					!!!For the moment this is likely to only work for positive GPS-Values!!!
+					screen_width - int
+					screen_height - int
+					off_screen_value - a gps tuple that needs to be comverted but
+					not considered whe defining the dimensions
+					draw_border - int that defines the width of the border that is left empty
+					and not considered for calculations
 	============================================================================
 	Returns:
-			an array of tuples (x,y) of integers assuming that top left is (0,0).
-			the tuples range from (0,0) to (screen_width, screen_height)
+					an array of tuples (x,y) of integers assuming that top left is (0,0).
+					the tuples range from (0,0) to (screen_width, screen_height)
 
-			a tuple that is the converted coordinates of the off_screen_value
+					a tuple that is the converted coordinates of the off_screen_value
 	============================================================================
 	"""
 	max_x, max_y = numpy.amax(gps_values, 0)
@@ -178,7 +184,7 @@ def gps_to_x_y(
 				+ draw_border,
 				bordered_height
 				- int((bordered_height *
-					   (off_screen_value[1] - min_y)) / range_y)
+					(off_screen_value[1] - min_y)) / range_y)
 				+ draw_border,
 			),
 		)
@@ -186,13 +192,13 @@ def gps_to_x_y(
 
 def draw_euclidean_distance_map(positions_gps, root_gps, display_width, display_height):
 	"""This function draws a distance map using pygame
-			Parameter:
-					positions_gps - an array of tuples giving positions as gps_data
-					!!!Proably only for positive coordinates!!!
-					root_gps - a tuple of gps data for the root position
-					display_width - int
-					display_height - int
-			============================================================================
+					Parameter:
+									positions_gps - an array of tuples giving positions as gps_data
+									!!!Proably only for positive coordinates!!!
+									root_gps - a tuple of gps data for the root position
+									display_width - int
+									display_height - int
+					============================================================================
 	"""
 	positions_x_y, root_x_y = gps_to_x_y(
 		positions_gps, display_width, display_height, root_gps
@@ -211,16 +217,16 @@ def draw_euclidean_distance_map(positions_gps, root_gps, display_width, display_
 				running = False
 
 
-def draw_distance_map(positions_gps, distances, stationTypesArr, display_width, display_height, point_size=1, save_as='screenshot'):
+def draw_distance_map(positions_gps, distances, station_types_arr, display_width, display_height, point_size=1, save_as='screenshot'):
 	"""This function draws a distance map using pygame
 			Parameter:
-					positions_gps - an array of tuples giving positions as gps_data
-					!!!Proably only for positive coordinates!!!
-					distances - an array fo distances according to the distance of the
-					corrosponding position to something in some metric
-					display_width - int
-					display_height - int
-			============================================================================
+				positions_gps - an array of tuples giving positions as gps_data
+				!!!Proably only for positive coordinates!!!
+				distances - an array fo distances according to the distance of the
+				corrosponding position to something in some metric
+				display_width - int
+				display_height - int
+	============================================================================
 	"""
 	positions_x_y = gps_to_x_y(positions_gps, display_width, display_height)
 	colours = colour_gradient_from_distance(distances)
@@ -228,20 +234,21 @@ def draw_distance_map(positions_gps, distances, stationTypesArr, display_width, 
 	screen = pygame.display.set_mode((display_width, display_height))
 	pygame.display.set_caption('Berlin aus Sicht der Metropole')
 	running = True
+	offset = (0, 0, 0)
 	for i in range(len(positions_x_y)):
-		if stationTypesArr[i] == 1:
+		if station_types_arr[i] == 1:
 			pygame.draw.circle(
-				screen, (255,255,255), positions_x_y[i], point_size[0]+4)
+				screen, (255,255,255), positions_x_y[i], point_size[0]+offset[0])
 			pygame.draw.circle(
 				screen, colours[i], positions_x_y[i], point_size[0])			
-		elif stationTypesArr[i] == 2:
+		elif station_types_arr[i] == 2:
 			pygame.draw.circle(
-				screen, (255,255,255), positions_x_y[i], point_size[1]+2)
+				screen, (255,255,255), positions_x_y[i], point_size[1]+offset[0])
 			pygame.draw.circle(
 				screen, colours[i], positions_x_y[i], point_size[1])
 		else:
 			pygame.draw.circle(
-				screen, (255,255,255), positions_x_y[i], point_size[2]+1)
+				screen, (255,255,255), positions_x_y[i], point_size[2]+offset[0])
 			pygame.draw.circle(
 				screen, colours[i], positions_x_y[i], point_size[2])
 	pygame.display.flip()
@@ -259,9 +266,9 @@ def draw_distance_map(positions_gps, distances, stationTypesArr, display_width, 
 				pygame.quit()
 
 
-def getVBBdata(centre):
+def get_vbb_data(centre):
 	global stations
-	global stationTypes
+	global station_types
 	g = Graph()
 	with open('nodes.ndjson') as f:
 		dataSta = ndjson.load(f)
@@ -291,74 +298,73 @@ def getVBBdata(centre):
 		distance = int(i['metadata']['time'])
 		line = i['metadata']['line']
 		if line.startswith('RB') or line.startswith('RB'):
-			stationTypes[stationA] = 1
-			stationTypes[stationB] = 1
+			station_types[stationA] = 1
+			station_types[stationB] = 1
 		elif line.startswith('U') or line.startswith('S'):
-			if stationA in stationTypes:
-				if stationTypes[stationA] > 1:
-					stationTypes[stationA] = 2
+			if stationA in station_types:
+				if station_types[stationA] > 1:
+					station_types[stationA] = 2
 			else:
-				stationTypes[stationA] = 2
-			if stationB in stationTypes:
-				if stationTypes[stationB] > 1:
-					stationTypes[stationB] = 2
+				station_types[stationA] = 2
+			if stationB in station_types:
+				if station_types[stationB] > 1:
+					station_types[stationB] = 2
 			else:
-				stationTypes[stationB] = 2
+				station_types[stationB] = 2
 		else:
-			if stationA in stationTypes:
-				if stationTypes[stationA] > 2:
-					stationTypes[stationA] = 3
+			if stationA in station_types:
+				if station_types[stationA] > 2:
+					station_types[stationA] = 3
 			else:
-				stationTypes[stationA] = 3
+				station_types[stationA] = 3
 
-			if stationB in stationTypes:
-				if stationTypes[stationB] > 2:
-					stationTypes[stationB] = 3
+			if stationB in station_types:
+				if station_types[stationB] > 2:
+					station_types[stationB] = 3
 			else:
-				stationTypes[stationB] = 3
+				station_types[stationB] = 3
 		g.add_edge(stationA, stationB, distance)
 
 	return dijsktra(g, centre)  # Nummer der Dabendorf Node: 900000245024
 
 
 def main():
-	global stationTypes
+	global station_types
 	try:
 		input_station = sys.argv[1]
 	except IndexError:
-		input_station = '900000160014'
-	graphVBB = getVBBdata(input_station)
-	stations_with_distances = graphVBB[0]
+		input_station = '900000245024'
+	graph_vbb = get_vbb_data(input_station)
+	stations_with_distances = graph_vbb[0]
 
 	positions = []
 	distances = []
-	stationTypesArr = []
+	station_types_arr = []
 
-	maxX = 13.908894
-	minX = 13.067187
-	maxY = 52.754362
-	minY = 52.227264
+	max_x = 13.908894
+	min_x = 13.067187
+	max_y = 52.754362
+	min_y = 52.227264
 	for i in stations_with_distances:
-		if stations[i][0] >= minX and stations[i][0] <= maxX and stations[i][1] >= minY and stations[i][1] <= maxY:
+		if stations[i][0] >= min_x and stations[i][0] <= max_x and stations[i][1] >= min_y and stations[i][1] <= max_y:
 			# if i == '900000193506':
 			#	distances.append(0)
 			# else:
 			distances.append(stations_with_distances[i])
 			positions.append(stations[i])
-			stationTypesArr.append(stationTypes[i])
+			station_types_arr.append(station_types[i])
 
-	deltaX = maxX-minX
-	deltaY = maxY-minY
-	#print(deltaX)
-	#print(deltaY)
-	#print(deltaX/deltaY)
+	delta_x = max_x-min_x
+	delta_y = max_y-min_y
+	#print(delta_x)
+	#print(delta_y)
+	#print(delta_x/delta_y)
 
-	height = 4320
-	width = int(height * (deltaX/deltaY))
-	point_size = (12, 7, 5)
-	draw_distance_map(positions, distances, stationTypesArr,
-					  width, height, point_size, input_station)
-	return
+	height = 1000
+	width = int(height * (delta_x/delta_y))
+	point_size = (6, 5, 3)
+	draw_distance_map(positions, distances, station_types_arr,
+					  width, height, point_size)
 
 
 if __name__ == "__main__":

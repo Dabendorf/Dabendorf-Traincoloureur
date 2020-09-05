@@ -85,7 +85,7 @@ def colour_gradient_from_distance(distance_array):
 	for i in range(length):
 		if distance_array[i] != 0:
 			start = 0  # 102.8 Start colour in Dabendorf, degrees from red
-			spectreSize = 0.9  # number of iterations around rainbow, preferibly < 1.0
+			spectreSize = 0.8  # number of iterations around rainbow, preferibly < 1.0
 			hue = ((((distance_array[i] - min)/rangemm) +
 					(((start/360)*255)/255)) % 1)*spectreSize
 
@@ -141,8 +141,8 @@ def gps_to_x_y(
 	"""
 	max_x, max_y = numpy.amax(gps_values, 0)
 	min_x, min_y = numpy.amin(gps_values, 0)
-	print(str(max_x)+" : "+str(min_x))
-	print(str(max_y)+" : " + str(min_y))
+	#print(str(max_x)+" : "+str(min_x))
+	#print(str(max_y)+" : " + str(min_y))
 	# print(draw_border)
 	range_x = abs(max_x - min_x)
 	range_y = abs(max_y - min_y)
@@ -161,7 +161,7 @@ def gps_to_x_y(
 				- int((bordered_height * (gps_values[i][1] - min_y)) / range_y)
 				+ draw_border,
 			)
-		print("Es wurde keine Offscreen-Value angegeben.")
+		#print("Es wurde keine Offscreen-Value angegeben.")
 		return positions
 	else:
 		positions = [None] * len(gps_values)
@@ -176,7 +176,7 @@ def gps_to_x_y(
 				+ draw_border,
 			)
 
-		print("Es wurde keine Offscreen-Value angegeben.")
+		#print("Es wurde keine Offscreen-Value angegeben.")
 		return (
 			positions,
 			(
@@ -257,12 +257,17 @@ def draw_distance_map(positions_gps, distances, station_types_arr, display_width
 				screen, colours[i], positions_x_y[i], point_size[2])
 	pygame.display.flip()
 	pygame.image.save(screen, save_as + '.png')
+	
+	print('Press q to terminate the programme')
 
 	while running:
 		# disposes of all events and possibly closes the programm
 		for event in pygame.event.get():
-			if event.type == pygame.QUIT:
+			keys = pygame.key.get_pressed()
+			if event.type == pygame.QUIT or keys[pygame.K_q] or keys[pygame.K_ESCAPE]:
 				running = False
+				pygame.display.quit()
+				pygame.quit()
 
 
 def get_vbb_data(centre):
@@ -355,9 +360,9 @@ def main():
 
 	delta_x = max_x-min_x
 	delta_y = max_y-min_y
-	print("Delta X: "+str(delta_x))
-	print("Delta Y: "+str(delta_y))
-	print("Ratio Delta: "+str(delta_x/delta_y))
+	# print("Delta X: "+str(delta_x))
+	# print("Delta Y: "+str(delta_y))
+	# print("Ratio Delta: "+str(delta_x/delta_y))
 
 	height = 1000
 	width = int(height * (delta_x/delta_y))

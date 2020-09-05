@@ -85,7 +85,7 @@ def colour_gradient_from_distance(distance_array):
 	for i in range(length):
 		if distance_array[i] != 0:
 			start = 0  # 102.8 Start colour in Dabendorf, degrees from red
-			spectreSize = 0.8  # number of iterations around rainbow, preferibly < 1.0
+			spectreSize = 0.9  # number of iterations around rainbow, preferibly < 1.0
 			hue = ((((distance_array[i] - min)/rangemm) +
 					(((start/360)*255)/255)) % 1)*spectreSize
 
@@ -230,6 +230,10 @@ def draw_distance_map(positions_gps, distances, station_types_arr, display_width
 	"""
 	positions_x_y = gps_to_x_y(positions_gps, display_width, display_height)
 	colours = colour_gradient_from_distance(distances)
+	try:
+		os.environ["DISPLAY"]
+	except:
+		os.environ["SDL_VIDEODRIVER"] = "dummy"
 	pygame.init()
 	screen = pygame.display.set_mode((display_width, display_height))
 	pygame.display.set_caption('Berlin aus Sicht der Metropole')
@@ -351,9 +355,9 @@ def main():
 
 	delta_x = max_x-min_x
 	delta_y = max_y-min_y
-	print(delta_x)
-	print(delta_y)
-	print(delta_x/delta_y)
+	print("Delta X: "+str(delta_x))
+	print("Delta Y: "+str(delta_y))
+	print("Ratio Delta: "+str(delta_x/delta_y))
 
 	height = 1000
 	width = int(height * (delta_x/delta_y))

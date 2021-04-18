@@ -8,10 +8,12 @@ import sys
 import os
 import colorsys
 from enum import Enum
+import pandas as pd
 
 import ndjson
 import numpy
 import pygame
+from argparse import ArgumentParser
 
 stations = dict()
 station_types = dict()
@@ -221,7 +223,7 @@ def draw_distance_map(positions_gps, distances, station_types_arr, display_width
 	"""This function draws a distance map using pygame
 			Parameter:
 				positions_gps - an array of tuples giving positions as gps_data
-				!!!Proably only for positive coordinates!!!
+				!!!Probably only for positive coordinates!!! (which doesn't matter for European data)
 				distances - an array fo distances according to the distance of the
 				corrosponding position to something in some metric
 				display_width - int
@@ -329,15 +331,26 @@ def get_vbb_data(centre):
 				station_types[stationB] = 3
 		g.add_edge(stationA, stationB, distance)
 
-	return dijsktra(g, centre)  # Nummer der Dabendorf Node: 900000245024
+	return dijsktra(g, centre)  # Station name of Dabendorf node: 900000245024
+
+def parse_args():
+	parser = ArgumentParser(description="Python3 programme which visualises\
+										public transport distances in Berlin.")
+
+	parser.add_argument("-s", "--start", default="dabendorf", type=str,
+						help="Changes the start station from where distances are calculated")
+
+	return parser.parse_args()
 
 
 def main():
+	args = parse_args()
 	global station_types
-	try:
-		input_station = sys.argv[1]
-	except IndexError:
-		input_station = '900000245024'
+
+	stations_dict = pd.read_csv('shortcuts.csv', header=0, index_col=0, squeeze=True).to_dict()
+
+	input_station = str(stations_dict[args.start])
+
 	graph_vbb = get_vbb_data(input_station)
 	stations_with_distances = graph_vbb[0]
 
@@ -345,10 +358,10 @@ def main():
 	distances = []
 	station_types_arr = []
 
-	max_x = 13.908894
-	min_x = 13.067187
-	max_y = 52.754362
-	min_y = 52.227264
+	max_x = 13.908894 # TODO
+	min_x = 13.067187 # TODO
+	max_y = 52.754362 # TODO
+	min_y = 52.227264 # TODO
 	for i in stations_with_distances:
 		if stations[i][0] >= min_x and stations[i][0] <= max_x and stations[i][1] >= min_y and stations[i][1] <= max_y:
 			# if i == '900000193506':
@@ -366,7 +379,7 @@ def main():
 
 	height = 1000
 	width = int(height * (delta_x/delta_y))
-	point_size = (6, 5, 3)
+	point_size = (6, 5, 3) # TODO
 	draw_distance_map(positions, distances, station_types_arr,
 					  width, height, point_size)
 

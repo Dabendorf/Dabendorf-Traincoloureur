@@ -17,6 +17,7 @@ from argparse import ArgumentParser
 
 stations = dict()
 station_types = dict()
+global spectre_size
 
 
 class Graph:
@@ -78,6 +79,8 @@ def colour_gradient_from_distance(distance_array):
 					an array of colours with the format (r,g,b) where r,g and b are between 0 and 255
 	============================================================================
 	"""
+	global spectre_size	# number of iterations around rainbow, preferibly < 1.0
+
 	max = numpy.amax(distance_array)
 	min = numpy.amin(distance_array)
 	rangemm = max - min
@@ -87,9 +90,8 @@ def colour_gradient_from_distance(distance_array):
 	for i in range(length):
 		if distance_array[i] != 0:
 			start = 0  # 102.8 Start colour in Dabendorf, degrees from red
-			spectreSize = 0.8  # number of iterations around rainbow, preferibly < 1.0
 			hue = ((((distance_array[i] - min)/rangemm) +
-					(((start/360)*255)/255)) % 1)*spectreSize
+					(((start/360)*255)/255)) % 1)*spectre_size
 
 			colours[i] = hsv2rgb(hue, 1.0, 1.0)
 		else:
@@ -349,7 +351,9 @@ def parse_args():
 						help="Boundary box for the shown geographical area; \
 							\nFormat: min_x,max_x,min_y,min_y (x=longitude, y=latitude); \
 							\nDefault: 13.067187,13.908894,52.227264,52.754362 (Berlin ABC); \
-							\nParams also possible: berlin, abc, brandenburg, brb, vbb")	
+							\nParams also possible: berlin, abc, brandenburg, brb, vbb")
+	parser.add_argument("-i", "--iterations", default="0.8", type=float,
+						help="Describes the number of iterations around the default rainbow scale. Default 0.8")
 
 	return parser.parse_args()
 
@@ -361,6 +365,9 @@ def main():
 	stations_dict = pd.read_csv('shortcuts.csv', header=0, index_col=0, squeeze=True).to_dict()
 
 	input_station = str(stations_dict[args.start])
+
+	global spectre_size
+	spectre_size = args.iterations
 
 	boundary_str = args.boundary
 	boundary_edges = boundary_str.split(",")
@@ -411,8 +418,7 @@ def main():
 	
 	height = args.height
 	width = int(height * (delta_x/delta_y))
-	print(height)
-	print(width)
+
 	point_size = (int(sizes[0]), int(sizes[1]), int(sizes[2]))
 	draw_distance_map(positions, distances, station_types_arr,
 					  width, height, point_size)

@@ -339,6 +339,17 @@ def parse_args():
 
 	parser.add_argument("-s", "--start", default="dabendorf", type=str,
 						help="Changes the start station from where distances are calculated")
+	parser.add_argument("-p", "--size", default="7,5,2", type=str,
+						help="Alters the size of the stations on the map; \
+							\nRequires three comma seperated arguments: \
+								\nRE,S/U,Bus/Tram")
+	parser.add_argument("-height", "--height", default="1000", type=int,
+						help="Height of the programme window")
+	parser.add_argument("-b", "--boundary", default="berlin", type=str,
+						help="Boundary box for the shown geographical area; \
+							\nFormat: min_x,max_x,min_y,min_y (x=longitude, y=latitude); \
+							\nDefault: 13.067187,13.908894,52.227264,52.754362 (Berlin ABC); \
+							\nParams also possible: berlin, abc, brandenburg, brb, vbb")	
 
 	return parser.parse_args()
 
@@ -351,6 +362,37 @@ def main():
 
 	input_station = str(stations_dict[args.start])
 
+	boundary_str = args.boundary
+	boundary_edges = boundary_str.split(",")
+
+	sizes_str = args.size
+	sizes = sizes_str.split(",")
+
+	if len(sizes) != 3:
+		print('\nSize parameter requires three integer\
+				\nRE,S/U,Bus/Tram')
+		sys.exit(0)
+
+	if boundary_str == "berlin" or boundary_str == "abc":
+		min_x = 13.067187
+		max_x = 13.908894
+		min_y = 52.227264
+		max_y = 52.754362
+	elif boundary_str == "brandenburg" or boundary_str == "brb" or boundary_str == "vbb":
+		min_x = 11.268720
+		max_x = 14.765748
+		min_y = 51.359064
+		max_y = 53.559119
+	elif len(boundary_edges) != 4:
+		print("\nBoundary parameter requires four integer\
+				\nFormat: min_x,max_x,min_y,min_y (x=longitude, y=latitude)")
+		sys.exit(0)
+	else:
+		min_x = float(boundary_edges[0])
+		max_x = float(boundary_edges[1])
+		min_y = float(boundary_edges[2])
+		max_y = float(boundary_edges[3])
+
 	graph_vbb = get_vbb_data(input_station)
 	stations_with_distances = graph_vbb[0]
 
@@ -358,28 +400,20 @@ def main():
 	distances = []
 	station_types_arr = []
 
-	max_x = 13.908894 # TODO
-	min_x = 13.067187 # TODO
-	max_y = 52.754362 # TODO
-	min_y = 52.227264 # TODO
 	for i in stations_with_distances:
 		if stations[i][0] >= min_x and stations[i][0] <= max_x and stations[i][1] >= min_y and stations[i][1] <= max_y:
-			# if i == '900000193506':
-			#	distances.append(0)
-			# else:
 			distances.append(stations_with_distances[i])
 			positions.append(stations[i])
 			station_types_arr.append(station_types[i])
 
 	delta_x = max_x-min_x
 	delta_y = max_y-min_y
-	# print("Delta X: "+str(delta_x))
-	# print("Delta Y: "+str(delta_y))
-	# print("Ratio Delta: "+str(delta_x/delta_y))
-
-	height = 1000
+	
+	height = args.height
 	width = int(height * (delta_x/delta_y))
-	point_size = (6, 5, 3) # TODO
+	print(height)
+	print(width)
+	point_size = (int(sizes[0]), int(sizes[1]), int(sizes[2]))
 	draw_distance_map(positions, distances, station_types_arr,
 					  width, height, point_size)
 

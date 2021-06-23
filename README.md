@@ -11,11 +11,11 @@ The programme runs on Python 3, using the _pygame_ framework.
 python3 -m pip install -U pygame --user
 ```
 
-### Load vbb data
-One needs to obtain the official VBB station data and distances first. We thankfully use the [Generate-vbb-graph](https://github.com/derhuerst/generate-vbb-graph/) javascript framework by [derhuerst](https://github.com/derhuerst/).
-Please run the following installation commands.
+### Optional: Load new vbb data
+We thankfully use the [Generate-vbb-graph](https://github.com/derhuerst/generate-vbb-graph/) javascript framework by [derhuerst](https://github.com/derhuerst/) for obtaining the official VBB station data and distances.
+The programme already includes those files, there is no need to run those files. If you want newer data than included in the project, you can download them by running the following commands:
 
-### Installing nodejs and generate-vbb-graph
+### Optional: Installing nodejs and generate-vbb-graph
 ```console
 sudo apt install npm
 sudo npm install -g generate-vbb-graph

@@ -2,8 +2,9 @@
 ## Preamble
 ![Example](examples/Dabendorf2.png)
 
-The aim of this little python programme is the colourful visualisation of public transport distances in Berlin and Brandenburg.
-It shows distances from a certain station (by default _Dabendorf Centralstation_) represented by a rainbow scale (customizable).
+The aim of this little python programme is the colourful visualisation of public transport distances in Berlin and Brandenburg.<br>
+It shows distances from a certain station (by default _Dabendorf Centralstation_) represented by a rainbow scale (customisable).<br>
+By using the same input format as for my examples of Berlin, it can also be used for other cities around the world.
 
 ## Prerequisites
 The programme runs on Python 3, using the _pygame_ framework.

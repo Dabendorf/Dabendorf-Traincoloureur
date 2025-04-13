@@ -362,7 +362,8 @@ def main():
 	args = parse_args()
 	global station_types
 
-	stations_dict = pd.read_csv('shortcuts.csv', header=0, index_col=0, squeeze=True).to_dict()
+	# stations_dict = pd.read_csv('shortcuts.csv', header=0, index_col=0, squeeze=True).to_dict()
+	stations_dict = pd.read_csv('shortcuts.csv', header=0, index_col=0).squeeze().to_dict()
 
 	input_station = str(stations_dict[args.start])
 

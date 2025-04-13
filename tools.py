@@ -9,6 +9,7 @@ import os
 import colorsys
 from enum import Enum
 import pandas as pd
+import numpy as np
 
 import ndjson
 import numpy
@@ -70,7 +71,7 @@ def hsv2rgb(h, s, v):
 	return tuple(round(i * 255) for i in colorsys.hsv_to_rgb(h, s, v))
 
 
-def colour_gradient_from_distance(distance_array):
+def colour_gradient_from_distance_old(distance_array):
 	"""This function calculates the color gradient of an array of distances
 	Parameter:
 					distance_array - an array of floats
@@ -79,6 +80,26 @@ def colour_gradient_from_distance(distance_array):
 					an array of colours with the format (r,g,b) where r,g and b are between 0 and 255
 	============================================================================
 	"""
+	global spectre_size	# number of iterations around rainbow, preferibly < 1.0
+
+	max = numpy.amax(distance_array)
+	min = numpy.amin(distance_array)
+	rangemm = max - min
+	length = len(distance_array)
+	colours = [None] * length
+	print("Dabendorf dankt")
+	for i in range(length):
+		if distance_array[i] != 0:
+			start = 0  # 102.8 Start colour in Dabendorf, degrees from red
+			hue = ((((distance_array[i] - min)/rangemm) +
+					(((start/360)*255)/255)) % 1)*spectre_size
+
+			colours[i] = hsv2rgb(hue, 1.0, 1.0)
+		else:
+			colours[i] = (51, 178, 0)  # DORgreen, 33b200
+	return colours
+
+def colour_gradient_from_distance(distance_array):
 	global spectre_size	# number of iterations around rainbow, preferibly < 1.0
 
 	max = numpy.amax(distance_array)
@@ -244,12 +265,21 @@ def draw_distance_map(positions_gps, distances, station_types_arr, display_width
 	running = True
 	offset = (0, 0, 0)
 	for i in range(len(positions_x_y)):
-		if station_types_arr[i] == 1:
+		if distances[i] == 0:
+			# Red cross for the start point
+			pygame.draw.line(screen, (255, 0, 0), 
+								(positions_x_y[i][0] - 5, positions_x_y[i][1] - 5), 
+								(positions_x_y[i][0] + 5, positions_x_y[i][1] + 5), 2)
+			pygame.draw.line(screen, (255, 0, 0), 
+								(positions_x_y[i][0] - 5, positions_x_y[i][1] + 5), 
+								(positions_x_y[i][0] + 5, positions_x_y[i][1] - 5), 2)
+		elif station_types_arr[i] == 1:
 			pygame.draw.circle(
 				screen, (255,255,255), positions_x_y[i], point_size[0]+offset[0])
 			pygame.draw.circle(
 				screen, colours[i], positions_x_y[i], point_size[0])			
 		elif station_types_arr[i] == 2:
+			print("Fjsahfjkds")
 			pygame.draw.circle(
 				screen, (255,255,255), positions_x_y[i], point_size[1]+offset[0])
 			pygame.draw.circle(
@@ -304,8 +334,9 @@ def get_vbb_data(centre):
 		stationA = str(i['source'])
 		stationB = str(i['target'])
 		distance = int(i['metadata']['time'])
-		line = i['metadata']['line']
-		if line.startswith('RB') or line.startswith('RB'):
+		line_type = i['relation']
+		
+		"""if line.startswith('RB') or line.startswith('RB'):
 			station_types[stationA] = 1
 			station_types[stationB] = 1
 		elif line.startswith('U') or line.startswith('S'):
@@ -330,7 +361,43 @@ def get_vbb_data(centre):
 				if station_types[stationB] > 2:
 					station_types[stationB] = 3
 			else:
+				station_types[stationB] = 3"""
+		"""
+		100 <= x <= 199 => train
+		200 <= x <= 299 => bus
+		700 <= x <= 799 => bus
+		900 <= x <= 999 => tramway
+		1000 <= x <= 1099 => ferry
+		1300 <= x <= 1399 => funicular
+		TODO find better concept https://developers.google.com/transit/gtfs/reference/extended-route-types
+		"""
+		if line_type == "train":
+			station_types[stationA] = 1
+			station_types[stationB] = 1
+		elif line_type == "tramway" or line_type == "ferry" or line_type == "funicular":
+			if stationA in station_types:
+				if station_types[stationA] > 1:
+					station_types[stationA] = 2
+			else:
+				station_types[stationA] = 2
+			if stationB in station_types:
+				if station_types[stationB] > 1:
+					station_types[stationB] = 2
+			else:
+				station_types[stationB] = 2
+		else:
+			if stationA in station_types:
+				if station_types[stationA] > 2:
+					station_types[stationA] = 3
+			else:
+				station_types[stationA] = 3
+
+			if stationB in station_types:
+				if station_types[stationB] > 2:
+					station_types[stationB] = 3
+			else:
 				station_types[stationB] = 3
+
 		g.add_edge(stationA, stationB, distance)
 
 	return dijsktra(g, centre)  # Station name of Dabendorf node: 900000245024

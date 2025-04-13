@@ -92,29 +92,6 @@ def colour_gradient_from_distance(distance_array):
 	return colours
 
 
-def colour_gradient_from_positions(positions, root_position):
-	"""This function calculates the color gradient of an array of positions
-					given a root position from which the distances are to be measured
-					Parameter:
-									positions - an array of tuples giving positions as tuples
-									root_position - a tuple
-					============================================================================
-					Returns:
-									an array of colours with the format (r,g,b) where r,g and b are between 0 and 255
-									going from green to red the farther the corresponding position is away from root
-					============================================================================
-	"""
-	distances = []
-	for position in positions:
-		distances.append(
-			numpy.sqrt(
-				((position[0] - root_position[0]) ** 2)
-				+ (position[1] - root_position[1]) ** 2
-			)
-		)
-	return colour_gradient_from_distance(distances)
-
-
 def gps_to_x_y(
 	gps_values, screen_width, screen_height, off_screen_value=None, draw_border=20
 ):
@@ -186,32 +163,6 @@ def gps_to_x_y(
 			),
 		)
 
-
-def draw_euclidean_distance_map(positions_gps, root_gps, display_width, display_height):
-	"""This function draws a distance map using pygame
-					Parameter:
-									positions_gps - an array of tuples giving positions as gps_data
-									!!!Proably only for positive coordinates!!!
-									root_gps - a tuple of gps data for the root position
-									display_width - int
-									display_height - int
-					============================================================================
-	"""
-	positions_x_y, root_x_y = gps_to_x_y(
-		positions_gps, display_width, display_height, root_gps
-	)
-	colours = colour_gradient_from_positions(positions_x_y, root_x_y)
-	pygame.init()
-	screen = pygame.display.set_mode((display_width, display_height))
-	running = True
-	for i in range(len(positions_x_y)):
-		pygame.draw.circle(screen, colours[i], positions_x_y[i], 1)
-	pygame.display.flip()
-	while running:
-		# disposes of all events and possibly closes the programm
-		for event in pygame.event.get():
-			if event.type == pygame.QUIT:
-				running = False
 
 
 def draw_distance_map(positions_gps, distances, station_types_arr, display_width, display_height, point_size=1, save_as='screenshot'):

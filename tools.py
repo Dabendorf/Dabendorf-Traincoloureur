@@ -71,48 +71,20 @@ def hsv2rgb(h, s, v):
 	return tuple(round(i * 255) for i in colorsys.hsv_to_rgb(h, s, v))
 
 
-def colour_gradient_from_distance_old(distance_array):
-	"""This function calculates the color gradient of an array of distances
-	Parameter:
-					distance_array - an array of floats
-	============================================================================
-	Returns:
-					an array of colours with the format (r,g,b) where r,g and b are between 0 and 255
-	============================================================================
-	"""
-	global spectre_size	# number of iterations around rainbow, preferibly < 1.0
-
-	max = numpy.amax(distance_array)
-	min = numpy.amin(distance_array)
-	rangemm = max - min
-	length = len(distance_array)
-	colours = [None] * length
-	print("Dabendorf dankt")
-	for i in range(length):
-		if distance_array[i] != 0:
-			start = 0  # 102.8 Start colour in Dabendorf, degrees from red
-			hue = ((((distance_array[i] - min)/rangemm) +
-					(((start/360)*255)/255)) % 1)*spectre_size
-
-			colours[i] = hsv2rgb(hue, 1.0, 1.0)
-		else:
-			colours[i] = (51, 178, 0)  # DORgreen, 33b200
-	return colours
-
 def colour_gradient_from_distance(distance_array):
 	global spectre_size	# number of iterations around rainbow, preferibly < 1.0
 
-	max = numpy.amax(distance_array)
-	min = numpy.amin(distance_array)
-	rangemm = max - min
+	max_dist = numpy.amax(distance_array)
+	min_dist = numpy.amin(distance_array)
+	rangemm = max_dist - min_dist
 	length = len(distance_array)
 	colours = [None] * length
 	print("Dabendorf dankt")
+
 	for i in range(length):
 		if distance_array[i] != 0:
-			start = 0  # 102.8 Start colour in Dabendorf, degrees from red
-			hue = ((((distance_array[i] - min)/rangemm) +
-					(((start/360)*255)/255)) % 1)*spectre_size
+			start = 0 # 102.8
+			hue = ((distance_array[i] - min_dist) / rangemm + (start / 360)) % 1 * spectre_size
 
 			colours[i] = hsv2rgb(hue, 1.0, 1.0)
 		else:
@@ -279,7 +251,6 @@ def draw_distance_map(positions_gps, distances, station_types_arr, display_width
 			pygame.draw.circle(
 				screen, colours[i], positions_x_y[i], point_size[0])			
 		elif station_types_arr[i] == 2:
-			print("Fjsahfjkds")
 			pygame.draw.circle(
 				screen, (255,255,255), positions_x_y[i], point_size[1]+offset[0])
 			pygame.draw.circle(

@@ -87,9 +87,7 @@ def gps_to_x_y(
 	"""
 	max_x, max_y = np.amax(gps_values, 0)
 	min_x, min_y = np.amin(gps_values, 0)
-	#print(str(max_x)+" : "+str(min_x))
-	#print(str(max_y)+" : " + str(min_y))
-	# print(draw_border)
+
 	range_x = abs(max_x - min_x)
 	range_y = abs(max_y - min_y)
 	bordered_width = screen_width - 2 * draw_border
@@ -107,7 +105,6 @@ def gps_to_x_y(
 				- int((bordered_height * (gps_values[i][1] - min_y)) / range_y)
 				+ draw_border,
 			)
-		#print("Es wurde keine Offscreen-Value angegeben.")
 		return positions
 	else:
 		positions = [None] * len(gps_values)
@@ -122,7 +119,6 @@ def gps_to_x_y(
 				+ draw_border,
 			)
 
-		#print("Es wurde keine Offscreen-Value angegeben.")
 		return (
 			positions,
 			(
@@ -202,8 +198,8 @@ def draw_distance_map(positions_gps, distances, station_types_arr, display_width
 
 
 def read_data(centre):
-	global stations
-	global station_types
+	stations = dict()
+	station_types = dict()
 	g = Graph()
 	with open('nodes.ndjson') as f:
 		dataSta = ndjson.load(f)
@@ -297,7 +293,7 @@ def read_data(centre):
 
 		g.add_edge(stationA, stationB, distance)
 
-	return dijsktra(g, centre)  # Station name of Dabendorf node: 900000245024
+	return dijsktra(g, centre), stations, station_types
 
 def parse_args():
 	parser = ArgumentParser(description="Python3 programme which visualises\
@@ -325,9 +321,7 @@ def parse_args():
 
 def main():
 	args = parse_args()
-	global station_types
 
-	# stations_dict = pd.read_csv('shortcuts.csv', header=0, index_col=0, squeeze=True).to_dict()
 	stations_dict = pd.read_csv('shortcuts.csv', header=0, index_col=0).squeeze().to_dict()
 
 	input_station = str(stations_dict[args.start])
@@ -365,7 +359,7 @@ def main():
 		min_y = float(boundary_edges[2])
 		max_y = float(boundary_edges[3])
 
-	graph_vbb = read_data(input_station)
+	(graph_vbb, stations, station_types) = read_data(input_station)
 	stations_with_distances = graph_vbb[0]
 
 	positions = []

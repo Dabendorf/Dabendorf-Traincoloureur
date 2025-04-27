@@ -1,4 +1,3 @@
-import colorsys
 import json
 import math
 import os
@@ -10,16 +9,14 @@ import colorsys
 from enum import Enum
 import pandas as pd
 import numpy as np
-
 import ndjson
-import numpy
 import pygame
 from argparse import ArgumentParser
+from pyproj import Transformer
+import colour_functions
 
 stations = dict()
 station_types = dict()
-global spectre_size
-
 
 class Graph:
 	def __init__(self):
@@ -67,31 +64,6 @@ def dijsktra(graph, initial):
 	return visited, path
 
 
-def hsv2rgb(h, s, v):
-	return tuple(round(i * 255) for i in colorsys.hsv_to_rgb(h, s, v))
-
-
-def colour_gradient_from_distance(distance_array):
-	global spectre_size	# number of iterations around rainbow, preferibly < 1.0
-
-	max_dist = numpy.amax(distance_array)
-	min_dist = numpy.amin(distance_array)
-	rangemm = max_dist - min_dist
-	length = len(distance_array)
-	colours = [None] * length
-	print("Dabendorf dankt")
-
-	for i in range(length):
-		if distance_array[i] != 0:
-			start = 0 # 102.8
-			hue = ((distance_array[i] - min_dist) / rangemm + (start / 360)) % 1 * spectre_size
-
-			colours[i] = hsv2rgb(hue, 1.0, 1.0)
-		else:
-			colours[i] = (51, 178, 0)  # DORgreen, 33b200
-	return colours
-
-
 def gps_to_x_y(
 	gps_values, screen_width, screen_height, off_screen_value=None, draw_border=20
 ):
@@ -113,8 +85,8 @@ def gps_to_x_y(
 					a tuple that is the converted coordinates of the off_screen_value
 	============================================================================
 	"""
-	max_x, max_y = numpy.amax(gps_values, 0)
-	min_x, min_y = numpy.amin(gps_values, 0)
+	max_x, max_y = np.amax(gps_values, 0)
+	min_x, min_y = np.amin(gps_values, 0)
 	#print(str(max_x)+" : "+str(min_x))
 	#print(str(max_y)+" : " + str(min_y))
 	# print(draw_border)
@@ -165,7 +137,7 @@ def gps_to_x_y(
 
 
 
-def draw_distance_map(positions_gps, distances, station_types_arr, display_width, display_height, point_size=1, save_as='screenshot'):
+def draw_distance_map(positions_gps, distances, station_types_arr, display_width, display_height, point_size=1, spectre_size=1, save_as='screenshot', colour_function_name="normalised_rainbow1"):
 	"""This function draws a distance map using pygame
 			Parameter:
 				positions_gps - an array of tuples giving positions as gps_data
@@ -177,14 +149,17 @@ def draw_distance_map(positions_gps, distances, station_types_arr, display_width
 	============================================================================
 	"""
 	positions_x_y = gps_to_x_y(positions_gps, display_width, display_height)
-	colours = colour_gradient_from_distance(distances)
+	gradient_func = getattr(colour_functions, colour_function_name)
+	colours = gradient_func(distances, spectre_size)
 	try:
 		os.environ["DISPLAY"]
 	except:
 		os.environ["SDL_VIDEODRIVER"] = "dummy"
 	pygame.init()
 	screen = pygame.display.set_mode((display_width, display_height))
-	pygame.display.set_caption('Berlin aus Sicht der Metropole')
+
+	caption = save_as if save_as != "screenshot" else "Berlin aus Sicht der Metropole"
+	pygame.display.set_caption(save_as)
 	running = True
 	offset = (0, 0, 0)
 	for i in range(len(positions_x_y)):
@@ -212,7 +187,7 @@ def draw_distance_map(positions_gps, distances, station_types_arr, display_width
 			pygame.draw.circle(
 				screen, colours[i], positions_x_y[i], point_size[2])
 	pygame.display.flip()
-	pygame.image.save(screen, save_as + '.png')
+	pygame.image.save(screen, f"pictures/{save_as}.png")
 	
 	print('Press q to terminate the programme')
 
@@ -226,7 +201,7 @@ def draw_distance_map(positions_gps, distances, station_types_arr, display_width
 				pygame.quit()
 
 
-def get_vbb_data(centre):
+def read_data(centre):
 	global stations
 	global station_types
 	g = Graph()
@@ -343,6 +318,7 @@ def parse_args():
 							\nParams also possible: berlin, abc, brandenburg, brb, vbb")
 	parser.add_argument("-i", "--iterations", default="0.8", type=float,
 						help="Describes the number of iterations around the default rainbow scale. Default 0.8")
+	parser.add_argument("--colourfunction", type=str, default="normalised_rainbow1", help="Name of the colouring function to use.")
 
 	return parser.parse_args()
 
@@ -356,7 +332,6 @@ def main():
 
 	input_station = str(stations_dict[args.start])
 
-	global spectre_size
 	spectre_size = args.iterations
 
 	boundary_str = args.boundary
@@ -390,7 +365,7 @@ def main():
 		min_y = float(boundary_edges[2])
 		max_y = float(boundary_edges[3])
 
-	graph_vbb = get_vbb_data(input_station)
+	graph_vbb = read_data(input_station)
 	stations_with_distances = graph_vbb[0]
 
 	positions = []
@@ -410,8 +385,15 @@ def main():
 	width = int(height * (delta_x/delta_y))
 
 	point_size = (int(sizes[0]), int(sizes[1]), int(sizes[2]))
-	draw_distance_map(positions, distances, station_types_arr,
-					  width, height, point_size)
+
+	# Define the transformer from WGS84 to UTM Zone 32N (EPSG:4326 → EPSG:32632)
+	transformer = Transformer.from_crs("EPSG:4326", "EPSG:32632", always_xy=True)
+
+	# Transform each coordinate
+	projected_coords = [transformer.transform(lon, lat) for lon, lat in positions]
+
+	draw_distance_map(projected_coords, distances, station_types_arr,
+					  width, height, point_size, spectre_size, args.start, colour_function_name=args.colourfunction)
 
 
 if __name__ == "__main__":
